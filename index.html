@@ -379,18 +379,28 @@
                                 <i className="fa-solid fa-solar-panel text-2xl"></i>
                             </div>
                             {/* Corporate Typography Stack mirroring image_da4e40.png */}
-                            <div className="flex flex-col">
-                                <div className="flex items-baseline">
-                                    <span className="text-2xl font-[900] text-[#0A1128] tracking-tight antialiased">AFAQ</span>
-                                    <span className="text-2xl font-normal text-[#475569] tracking-tight ml-1.5 antialiased">Renewables</span>
-                                    <span className={`hidden sm:inline-block text-[10px] px-2.5 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-3 self-center transition-colors ${
-                                        isAdmin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'
-                                    }`}>
-                                        {isAdmin ? 'Admin Console Active' : 'Read-Only View'}
-                                    </span>
-                                </div>
-                                <p className="text-xs text-solar-textMuted font-medium tracking-wide">Jubilee Bros Joint Sales & Procurement Pipeline</p>
-                            </div>
+<div className="flex flex-col">
+    <div className="flex items-baseline flex-wrap gap-y-1">
+        <span className="text-2xl font-[900] text-[#0A1128] tracking-tight antialiased">AFAQ</span>
+        <span className="text-2xl font-normal text-[#475569] tracking-tight ml-1.5 antialiased">Renewables</span>
+        
+        {/* Permission Status Badge */}
+        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2.5 self-center transition-colors ${
+            isAdmin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'
+        }`}>
+            {isAdmin ? 'Admin Console Active' : 'Read-Only View'}
+        </span>
+
+        {/* Database Connectivity Sync Badge */}
+        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2 self-center transition-colors ${
+            isCloudConfigured ? 'bg-sky-50 text-solar-primary border-sky-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+        }`}>
+            <i className={`fa-solid ${isCloudConfigured ? 'fa-cloud' : 'fa-laptop'} mr-1`}></i>
+            {isCloudConfigured ? 'Cloud Live' : 'Local Standalone'}
+        </span>
+    </div>
+    <p className="text-xs text-solar-textMuted font-medium tracking-wide">Jubilee Bros Joint Sales & Procurement Pipeline</p>
+</div>
                         </div>
 
                         {/* Interactive Action Control Chamber with Security Gatekeeping */}
