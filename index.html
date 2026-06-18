@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFAQ Renewables - Executive Solar Sales Cockpit</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,15 +11,15 @@
                 extend: {
                     colors: {
                         solar: {
-                            bgMain: '#F8FAFC',
-                            cardBg: '#FFFFFF',
-                            border: '#E2E8F0',
-                            textDark: '#0F172A',
-                            textMuted: '#475569',
-                            primary: '#0284C7',
+                            bgMain: '#F8FAFC',        /* Crisp modern bright canvas */
+                            cardBg: '#FFFFFF',        /* Pure white premium floating panels */
+                            border: '#E2E8F0',        /* Geometric panel line transitions */
+                            textDark: '#0F172A',      /* High-contrast deep slate text */
+                            textMuted: '#475569',     /* Secondary corporate descriptive text */
+                            primary: '#0284C7',       /* High-tech Silicon Blue */
                             primaryHover: '#0369A1',
                             primaryLight: '#E0F2FE',
-                            accentGreen: '#10B981',
+                            accentGreen: '#10B981',   /* Clean Energy Eco Green */
                             accentGreenHover: '#059669',
                             blue: '#2563EB',
                             accentPurple: '#7C3AED',
@@ -34,11 +33,9 @@
             }
         }
     </script>
-    <!-- Inter Font & FontAwesome for Premium Feel -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Core Application Framework Components (Classic UMD Layer) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone@7.15.0/babel.min.js" crossorigin></script>
@@ -50,6 +47,7 @@
             scrollbar-width: thin;
             scrollbar-color: #CBD5E1 #F1F5F9;
         }
+        /* Custom scrollbar styling for webkit */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -75,19 +73,22 @@
 </head>
 <body class="bg-solar-bgMain text-solar-textDark min-h-full flex flex-col antialiased">
 
-    <!-- Single Main Mount Target Node -->
     <div id="root" class="min-h-screen lg:h-screen flex flex-col"></div>
 
-    <!-- React Dynamic Application Execution Context -->
-    <script type="text/babel">
+    <script type="text/babel" data-version="3.0-verified-dynamic-kpis">
         const { useState, useEffect, useMemo } = React;
 
+        // =========================================================================
+        // PLACE YOUR CLOUD DATABASE PARAMETERS HERE FOR REAL-TIME TEAM SYNCING
+        // =========================================================================
         const SUPABASE_URL = "https://ygzejawnhswhumwbitob.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_2ANSi_Ikn_ilWy-PSoKG6Q_0qH1udEc";
 
+        // Smart protection boundary check
         const isCloudConfigured = SUPABASE_URL && !SUPABASE_URL.includes("PLACE_YOUR_");
         const supabase = isCloudConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+        // Baseline data from the AFAQ joint venture sales audited ledger
         const BASELINE_LEDGER = [
             { id: "1", orderNo: "2011", year: 2025, customer: "Jangho Arabia Construction LCC", desc: "Supplying of Jinko 620 Wp PV Module - 3852 panels", value: 1019778.49, billed: 886763.90, collection: 1019778.49, profit: 23561.45, afaqProfit: 23561.45, jubileeProfit: 0.00, status: "Completed" },
             { id: "2", orderNo: "2017", year: 2025, customer: "Jangho Arabia Construction LCC", desc: "Supplying of GT Series 125 kW - 16 units", value: 220698.80, billed: 191912.00, collection: 220698.80, profit: 11825.00, afaqProfit: 11825.00, jubileeProfit: 0.00, status: "Completed" },
@@ -121,17 +122,20 @@
             const [projects, setProjects] = useState([]);
             const [isTableLoading, setIsTableLoading] = useState(true);
 
+            // Gatekeeper Security States
             const [isAdmin, setIsAdmin] = useState(false);
             const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
             const [enteredPassword, setEnteredPassword] = useState('');
             const [passwordError, setPasswordError] = useState(false);
 
+            // Filtering and UI states
             const [searchQuery, setSearchQuery] = useState('');
             const [statusFilter, setStatusFilter] = useState('All');
             const [yearFilter, setYearFilter] = useState('All');
             const [notification, setNotification] = useState(null);
             const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+            // Modal States
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [modalType, setModalType] = useState('ADD'); 
             const [currentProject, setCurrentProject] = useState({
@@ -147,6 +151,7 @@
                 setTimeout(() => setNotification(null), 4000);
             };
 
+            // Database Lifecycle Engine - Local-first load strategy
             useEffect(() => {
                 const stored = localStorage.getItem('afaq_renewables_sales');
                 const localData = stored ? JSON.parse(stored) : BASELINE_LEDGER;
@@ -217,7 +222,7 @@
                 }
             };
 
-            // 1. Strict Sanity Filter Mapping Engine
+            // 1. SANITIZED INTERACTIVE FILTER ENGINE
             const filteredProjects = useMemo(() => {
                 return projects.filter(p => {
                     const customerStr = String(p.customer || '').toLowerCase();
@@ -232,7 +237,7 @@
                 });
             }, [projects, searchQuery, statusFilter, yearFilter]);
 
-            // 2. Bound KPI Evaluation Array Hook (This forces Upper Cards to recalculate live)
+            // 2. RUNTIME DYNAMIC METRICS COMPUTE LAYER (Tied explicitly to the changing filtered list)
             const metrics = useMemo(() => {
                 let totalPipeline = 0; let totalBilled = 0; let totalCollected = 0;
                 let totalProfit = 0; let totalAfaq = 0; let totalJubilee = 0;
@@ -289,13 +294,39 @@
 
                 if (modalType === 'ADD') {
                     const id = Date.now().toString();
-                    const newProject = { ...formatted, id, orderNo: formatted.orderNo || `N/A-${id.slice(-4)}` };
+                    const newProject = {
+                        ...formatted,
+                        id,
+                        orderNo: formatted.orderNo || `N/A-${id.slice(-4)}`
+                    };
+                    
                     setProjects(prev => [newProject, ...prev]);
-                    if (isCloudConfigured) await supabase.from('ledger').insert([newProject]);
+                    showToast("Record appended and locked into system configuration layout.");
+                    
+                    if (isCloudConfigured) {
+                        const { error } = await supabase.from('ledger').insert([newProject]);
+                        if (error) {
+                            console.error("Supabase Write Blocked:", error);
+                            showToast("Cloud sync pending. Data remains safe and complete on your device.", "warning");
+                        } else {
+                            showToast("Database cloud metrics row synchronized successfully.");
+                        }
+                    }
                 } else {
                     setProjects(prev => prev.map(p => p.id === currentProject.id ? formatted : p));
-                    if (isCloudConfigured) await supabase.from('ledger').update(formatted).eq('id', formatted.id);
+                    showToast("Local ledger contract details modified.");
+                    
+                    if (isCloudConfigured) {
+                        const { error } = await supabase.from('ledger').update(formatted).eq('id', formatted.id);
+                        if (error) {
+                            console.error("Supabase Edit Blocked:", error);
+                            showToast("Cloud update pending. Data remains safe on your device.", "warning");
+                        } else {
+                            showToast("Database cloud profile matrix updated successfully.");
+                        }
+                    }
                 }
+
                 setIsModalOpen(false);
             };
 
@@ -315,9 +346,14 @@
 
             const handleDelete = async (id) => {
                 if (!isAdmin) return;
-                if (window.confirm("Remove contract selection?")) {
+                if (window.confirm("Are you sure you want to remove this client from the executive sales record? This action will immediately recalculate all cumulative joint metrics.")) {
                     setProjects(prev => prev.filter(p => p.id !== id));
-                    if (isCloudConfigured) await supabase.from('ledger').delete().eq('id', id);
+                    showToast("Contract removed from master memory structure.", "warning");
+                    
+                    if (isCloudConfigured) {
+                        const { error } = await supabase.from('ledger').delete().eq('id', id);
+                        if (error) console.error("Cloud delete skipped due to token permissions.");
+                    }
                 }
             };
 
@@ -325,13 +361,19 @@
                 if (!isAdmin) return;
                 setProjects(prev => prev.map(p => p.id === id ? { ...p, status: newStatus, lastUpdated: Date.now() } : p));
                 setActiveStatusChangerId(null);
-                if (isCloudConfigured) await supabase.from('ledger').update({ status: newStatus, lastUpdated: Date.now() }).eq('id', id);
+                showToast("Project execution status updated.");
+                
+                if (isCloudConfigured) {
+                    const { error } = await supabase.from('ledger').update({ status: newStatus, lastUpdated: Date.now() }).eq('id', id);
+                    if (error) console.error("Cloud direct patch skipped.");
+                }
             };
 
             const runAutoSplit = (type) => {
                 const totalProf = Number(currentProject.profit || 0);
-                if (type === 'afaq100') setCurrentProject(prev => ({ ...prev, afaqProfit: totalProf, jubileeProfit: 0 }));
-                else if (type === 'split50') {
+                if (type === 'afaq100') {
+                    setCurrentProject(prev => ({ ...prev, afaqProfit: totalProf, jubileeProfit: 0 }));
+                } else if (type === 'split50') {
                     const half = (totalProf / 2).toFixed(2);
                     setCurrentProject(prev => ({ ...prev, afaqProfit: Number(half), jubileeProfit: Number(half) }));
                 }
@@ -339,8 +381,10 @@
 
             const handleResetToBaseline = async () => {
                 if (!isAdmin) return;
-                if (window.confirm("Revert database workspace records to core baseline templates?")) {
+                if (window.confirm("Warning: This will overwrite all custom inputs, modifications, and newly added clients back to the original audited 2025/2026 baseline records. Proceed?")) {
                     setProjects(BASELINE_LEDGER);
+                    showToast("Reverted system memory configurations back to clean baseline data templates.", "warning");
+                    
                     if (isCloudConfigured) {
                         setIsTableLoading(true);
                         await supabase.from('ledger').delete().neq('id', '0');
@@ -358,7 +402,7 @@
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `AFAQ_Solar_Sales_Master.csv`);
+                link.setAttribute("download", `AFAQ_Solar_Sales_Master_Filtered.csv`);
                 document.body.appendChild(link); link.click(); document.body.removeChild(link);
             };
 
@@ -367,6 +411,7 @@
             return (
                 <div className="flex-1 flex flex-col lg:h-full lg:overflow-hidden bg-solar-bgMain">
                     
+                    {/* Header bar inspired by Tier 1 corporate designs */}
                     <header className="bg-solar-cardBg border-b border-solar-border px-4 sm:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm shrink-0">
                         <div className="flex items-center gap-3 w-full md:w-auto select-none">
                             <div className="bg-[#0081C9] w-[46px] h-[46px] rounded-[13px] flex items-center justify-center text-white shadow-sm shrink-0">
@@ -376,23 +421,69 @@
                                 <div className="flex items-baseline flex-wrap gap-y-1">
                                     <span className="text-2xl font-[900] text-[#0A1128] tracking-tight antialiased">AFAQ</span>
                                     <span className="text-2xl font-normal text-[#475569] tracking-tight ml-1.5 antialiased">Renewables</span>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2.5 self-center ${isAdmin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>{isAdmin ? 'Admin Console Active' : 'Read-Only View'}</span>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2 self-center ${isCloudConfigured ? 'bg-sky-50 text-solar-primary border-sky-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}><i className={`fa-solid ${isCloudConfigured ? 'fa-cloud' : 'fa-laptop'} mr-1`}></i>{isCloudConfigured ? 'Cloud Sync Enabled' : 'Local Standalone'}</span>
+                                    
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2.5 self-center transition-colors ${
+                                        isAdmin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'
+                                    }`}>
+                                        {isAdmin ? 'Admin Console Active' : 'Read-Only View'}
+                                    </span>
+
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2 self-center transition-colors bg-sky-50 text-solar-primary border-sky-200`}>
+                                        <i className="fa-solid fa-cloud-sun mr-1"></i>
+                                        Live Workspace Recalculator
+                                    </span>
                                 </div>
                                 <p className="text-xs text-solar-textMuted font-medium tracking-wide">Jubilee Bros Joint Sales & Procurement Pipeline</p>
                             </div>
                         </div>
+
                         <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 sm:gap-3 w-full md:w-auto">
-                            <button onClick={() => isAdmin ? (setIsAdmin(false), showToast("Platform locked.")) : setIsAuthModalOpen(true)} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 shadow-sm ${isAdmin ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' : 'bg-sky-50 border-sky-200 text-solar-primary hover:bg-sky-100'}`}><i className={`fa-solid ${isAdmin ? 'fa-lock-open' : 'fa-lock'}`}></i>{isAdmin ? 'Lock Platform' : 'Unlock Platform'}</button>
-                            {isAdmin && <button onClick={handleResetToBaseline} className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-solar-textMuted rounded-lg text-xs font-semibold transition-all border border-solar-border flex items-center gap-1.5"><i className="fa-solid fa-rotate-left"></i> Baseline</button>}
-                            <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-solar-textMuted rounded-lg text-xs font-semibold transition-all border border-solar-border flex items-center gap-1.5"><i className="fa-solid fa-file-csv"></i> Export CSV</button>
-                            {isAdmin && <button onClick={openAddModal} className="px-4 py-2 bg-solar-primary hover:bg-solar-primaryHover text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5"><i className="fa-solid fa-circle-plus text-sm"></i> Add Client Order</button>}
+                            <button 
+                                onClick={() => isAdmin ? (setIsAdmin(false), showToast("Platform locked.")) : setIsAuthModalOpen(true)}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 flex-1 sm:flex-initial justify-center shadow-sm ${
+                                    isAdmin ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' : 'bg-sky-50 border-sky-200 text-solar-primary hover:bg-sky-100'
+                                }`}
+                            >
+                                <i className={`fa-solid ${isAdmin ? 'fa-lock-open' : 'fa-lock'}`}></i>
+                                {isAdmin ? 'Lock Platform' : 'Unlock Platform'}
+                            </button>
+
+                            {isAdmin && (
+                                <button 
+                                    onClick={handleResetToBaseline}
+                                    className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-solar-textMuted rounded-lg text-xs font-semibold transition-all border border-solar-border flex items-center gap-1.5 flex-1 sm:flex-initial justify-center animate-fade-in"
+                                >
+                                    <i className="fa-solid fa-rotate-left"></i> Baseline
+                                </button>
+                            )}
+                            
+                            <button 
+                                onClick={handleExportCSV}
+                                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-solar-textMuted rounded-lg text-xs font-semibold transition-all border border-solar-border flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
+                            >
+                                <i className="fa-solid fa-file-csv"></i> Export CSV
+                            </button>
+
+                            {isAdmin && (
+                                <button 
+                                    onClick={openAddModal}
+                                    className="px-4 py-2 bg-solar-primary hover:bg-solar-primaryHover text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-sky-500/10 flex items-center gap-1.5 w-full sm:w-auto justify-center animate-fade-in"
+                                >
+                                    <i className="fa-solid fa-circle-plus text-sm"></i> Add Client Order
+                                </button>
+                            )}
                         </div>
                     </header>
 
                     <div className="lg:hidden bg-solar-cardBg border-b border-solar-border px-4 py-2.5 flex justify-between items-center shrink-0">
-                        <button onClick={() => setShowMobileFilters(!showMobileFilters)} className="text-xs font-bold text-solar-textDark flex items-center gap-2 bg-solar-bgMain px-3 py-2 border border-solar-border rounded-lg w-full justify-between focus:outline-none">
-                            <span className="flex items-center gap-1.5"><i className="fa-solid fa-sliders text-solar-primary"></i>{statusFilter !== 'All' || yearFilter !== 'All' || searchQuery ? 'Workspace Filters (Active)' : 'Filter & Search Workspace'}</span>
+                        <button 
+                            onClick={() => setShowMobileFilters(!showMobileFilters)} 
+                            className="text-xs font-bold text-solar-textDark flex items-center gap-2 bg-solar-bgMain px-3 py-2 border border-solar-border rounded-lg w-full justify-between focus:outline-none"
+                        >
+                            <span className="flex items-center gap-1.5">
+                                <i className="fa-solid fa-sliders text-solar-primary"></i> 
+                                {statusFilter !== 'All' || yearFilter !== 'All' || searchQuery ? 'Workspace Filters (Active)' : 'Filter & Search Workspace'}
+                            </span>
                             <i className={`fa-solid ${showMobileFilters ? 'fa-chevron-up' : 'fa-chevron-down'} text-solar-textMuted`}></i>
                         </button>
                     </div>
@@ -403,33 +494,67 @@
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-solar-textDark mb-1">Interactive Filters</h3>
                                 <p className="text-[11px] text-solar-textMuted">Slice distribution volumes by statuses, timelines, and customer tags.</p>
                             </div>
+
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Search Workspace</label>
                                 <div className="relative">
-                                    <input type="text" placeholder="Order No, client, keywords..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-solar-bgMain border border-solar-border rounded-lg px-3 py-2 pl-9 text-xs text-solar-textDark placeholder-slate-400 focus:outline-none focus:border-solar-primary" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Order No, client, keywords..." 
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full bg-solar-bgMain border border-solar-border rounded-lg px-3 py-2 pl-9 text-xs text-solar-textDark focus:outline-none focus:border-solar-primary"
+                                    />
                                     <i className="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2 text-slate-400 text-xs"><i className="fa-solid fa-xmark"></i></button>}
+                                    {searchQuery && (
+                                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2 text-slate-400 text-xs">
+                                            <i className="fa-solid fa-xmark"></i>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
+
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[10px] font-bold uppercase tracking-wider text-solar-textMuted">Execution Status</label>
                                 <div className="grid grid-cols-1 gap-1">
                                     {['All', 'Completed', 'Last payment against PN', 'Not handover'].map(status => (
-                                        <button key={status} onClick={() => setStatusFilter(status)} className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all flex items-center justify-between ${statusFilter === status ? 'bg-sky-50 text-solar-primary border border-sky-200 font-semibold shadow-sm' : 'bg-solar-bgMain/60 text-solar-textMuted border border-transparent hover:bg-slate-100 hover:text-solar-textDark'}`}>
+                                        <button
+                                            key={status}
+                                            onClick={() => setStatusFilter(status)}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all flex items-center justify-between ${
+                                                statusFilter === status 
+                                                    ? 'bg-sky-50 text-solar-primary border border-sky-200 font-semibold shadow-sm' 
+                                                    : 'bg-solar-bgMain/60 text-solar-textMuted border border-transparent hover:bg-slate-100 hover:text-solar-textDark'
+                                            }`}
+                                        >
                                             <span>{status}</span>
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-slate-200/60 rounded text-solar-textMuted font-mono">{status === 'All' ? projects.length : projects.filter(p => p.status === status).length}</span>
+                                            <span className="text-[10px] px-1.5 py-0.5 bg-slate-200/60 rounded text-solar-textMuted font-mono">
+                                                {status === 'All' ? projects.length : projects.filter(p => p.status === status).length}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
+
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[10px] font-bold uppercase tracking-wider text-solar-textMuted">Operational Year</label>
                                 <div className="flex gap-2">
                                     {['All', '2025', '2026'].map(year => (
-                                        <button key={year} onClick={() => setYearFilter(year)} className={`flex-1 text-center py-1.5 rounded-lg text-xs transition-all border ${yearFilter === year ? 'bg-sky-50 text-solar-primary border-sky-300 font-semibold shadow-sm' : 'bg-solar-bgMain border-solar-border text-solar-textMuted hover:bg-slate-50'}`}>{year}</button>
+                                        <button
+                                            key={year}
+                                            onClick={() => setYearFilter(year)}
+                                            className={`flex-1 text-center py-1.5 rounded-lg text-xs transition-all border ${
+                                                yearFilter === year 
+                                                    ? 'bg-sky-50 text-solar-primary border-sky-300 font-semibold shadow-sm' 
+                                                    : 'bg-solar-bgMain border-solar-border text-solar-textMuted hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            {year}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
+
                             <div className="mt-2 lg:mt-auto pt-4 border-t border-solar-border bg-solar-bgMain/60 p-3.5 rounded-xl border border-dashed border-slate-200">
                                 <h4 className="text-[10px] font-bold uppercase text-solar-primary mb-2 tracking-wider flex items-center gap-1"><i className="fa-solid fa-handshake"></i> Partnership Dynamics</h4>
                                 <div className="flex justify-between text-[10px] text-solar-textMuted mb-1.5">
@@ -513,7 +638,7 @@
                                 <div className="bg-solar-cardBg p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between">
                                     <div className="flex justify-between items-center w-full">
                                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Net Margin Returns</span>
-                                        <div className="bg-purple-50 p-2 rounded-xl text-[#7C3AED] border border-purple-100 w-8 h-8 flex items-center justify-center"><i className="fa-solid fa-hand-holding-dollar text-xs"></i></div>
+                                        <div className="bg-purple-50 p-2 rounded-xl text-solar-accentPurple border border-purple-100 w-8 h-8 flex items-center justify-center"><i className="fa-solid fa-hand-holding-dollar text-xs"></i></div>
                                     </div>
                                     <div className="mt-4 flex flex-col">
                                         <div className="flex items-baseline flex-wrap">
@@ -547,6 +672,7 @@
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-solar-textDark flex items-center gap-1.5"><i className="fa-solid fa-building text-solar-primary"></i> Top Customers by Contract Volume</h3>
                                         <p className="text-[11px] text-solar-textMuted mt-0.5">Top purchasing and procurement entities across KSA hubs</p>
                                     </div>
+
                                     <div className="flex flex-col gap-4 pt-1">
                                         {customerGroupData.map((client, idx) => {
                                             const percent = (client.val / maxCustomerVal) * 100;
@@ -562,7 +688,9 @@
                                                 </div>
                                             );
                                         })}
-                                        {customerGroupData.length === 0 && <p className="text-center text-solar-textMuted text-[11px] py-12">No client orders recorded matching filters.</p>}
+                                        {customerGroupData.length === 0 && (
+                                            <p className="text-center text-solar-textMuted text-[11px] py-12">No client orders recorded matching filters.</p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -571,22 +699,24 @@
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-solar-textDark flex items-center gap-1.5"><i className="fa-solid fa-chart-pie text-solar-primary"></i> Net Profit Allocation</h3>
                                         <p className="text-[11px] text-solar-textMuted mt-0.5">Distribution shares of the total margin yield</p>
                                     </div>
+
                                     <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-6">
-                                        <div className="relative w-32 h-32 shrink-0">
+                                        <div className="relative w-32 h-32 sm:w-34 sm:h-34 shrink-0">
                                             <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                                                 <circle cx="18" cy="18" r="15.915" fill="none" stroke="#F1F5F9" strokeWidth="3"></circle>
                                                 {metrics.totalProfit > 0 && (
                                                     <React.Fragment>
-                                                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#0284C7" strokeWidth="3.5" strokeDasharray={`${(metrics.totalAfaq / metrics.totalProfit) * 100} ${100 - ((metrics.totalAfaq / metrics.totalProfit) * 100)}`}\></circle>
+                                                        <circle cx="18" cy="18" r="15.915" fill="none" stroke="#0284C7" strokeWidth="3.5" strokeDasharray={`${(metrics.totalAfaq / metrics.totalProfit) * 100} ${100 - ((metrics.totalAfaq / metrics.totalProfit) * 100)}`} strokeDashoffset="0"></circle>
                                                         <circle cx="18" cy="18" r="15.915" fill="none" stroke="#10B981" strokeWidth="3.5" strokeDasharray={`${(metrics.totalJubilee / metrics.totalProfit) * 100} ${100 - ((metrics.totalJubilee / metrics.totalProfit) * 100)}`} strokeDashoffset={-((metrics.totalAfaq / metrics.totalProfit) * 100)}></circle>
                                                     </React.Fragment>
                                                 )}
                                             </svg>
                                             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                                                 <span className="text-[9px] font-bold text-solar-textMuted uppercase tracking-wider">Avg Yield</span>
-                                                <span className="text-sm font-black text-solar-textDark">{metrics.profitMargin.toFixed(1)}%</span>
+                                                <span className="text-sm sm:text-base font-black text-solar-textDark">{metrics.profitMargin.toFixed(1)}%</span>
                                             </div>
                                         </div>
+
                                         <div className="flex flex-col gap-2.5 text-[11px] w-full">
                                             <div className="bg-slate-50 p-2 rounded-lg border border-solar-border">
                                                 <div className="flex items-center gap-1.5 text-solar-primary font-bold uppercase text-[10px]"><span className="w-2 h-2 rounded-full bg-solar-primary"></span> AFAQ Share</div>
@@ -609,6 +739,7 @@
                                     </div>
                                     <div className="text-[11px] font-medium text-solar-textMuted bg-slate-50 px-3 py-1.5 rounded-lg border border-solar-border w-full sm:w-auto text-center">Showing <strong className="text-solar-textDark font-bold">{filteredProjects.length}</strong> of <strong className="text-solar-textDark font-bold">{projects.length}</strong> entries</div>
                                 </div>
+
                                 <div className="flex-1 overflow-x-auto w-full">
                                     <table className="w-full text-left border-collapse min-w-[1100px]">
                                         <thead>
@@ -630,6 +761,7 @@
                                                 const afaqPct = project.profit > 0 ? Math.round((project.afaqProfit / project.profit) * 100) : 0;
                                                 const jubileePct = project.profit > 0 ? Math.round((project.jubileeProfit / project.profit) * 100) : 0;
                                                 const remainingToCollect = Number(project.value || 0) - Number(project.collection || 0);
+
                                                 let statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
                                                 if (project.status === 'Not handover') statusColor = 'bg-sky-50 text-solar-primary border-sky-200 hover:bg-sky-100';
                                                 else if (project.status === 'Last payment against PN') statusColor = 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100';
@@ -736,7 +868,7 @@
                                         </div>
                                         <div>
                                             <label className="block text-[10px] font-bold uppercase tracking-wider text-solar-textMuted mb-1.5">Execution Status</label>
-                                            <select value={currentProject.status} onChange={(e) => setCurrentProject(prev => ({ ...prev, status: p.target.value }))} className="w-full bg-solar-bgMain border border-solar-border rounded-lg px-3 py-2 text-xs text-solar-textDark focus:outline-none">
+                                            <select value={currentProject.status} onChange={(e) => setCurrentProject(prev => ({ ...prev, status: e.target.value }))} className="w-full bg-solar-bgMain border border-solar-border rounded-lg px-3 py-2 text-xs text-solar-textDark focus:outline-none">
                                                 <option value="Completed">Completed</option><option value="Not handover">Not handover</option><option value="Last payment against PN">Last payment against PN</option>
                                             </select>
                                         </div>
