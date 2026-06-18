@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFAQ Renewables - Executive Solar Sales Cockpit</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -33,9 +34,11 @@
             }
         }
     </script>
+    <!-- Inter Font & FontAwesome for Premium Feel -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Framework CDNs -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone@7.15.0/babel.min.js" crossorigin></script>
@@ -73,8 +76,10 @@
 </head>
 <body class="bg-solar-bgMain text-solar-textDark min-h-full flex flex-col antialiased">
 
+    <!-- Target mounting point for our React Application -->
     <div id="root" class="min-h-screen lg:h-screen flex flex-col"></div>
 
+    <!-- React Application Implementation -->
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
@@ -222,7 +227,7 @@
                 }
             };
 
-            // 1. FILTERED PROJECT LIST GENERATED FIRST
+            // 1. FILTERED PROJECT LIST GENERATED FIRST (Triggers UI updates dynamically)
             const filteredProjects = useMemo(() => {
                 return projects.filter(p => {
                     const matchesSearch = p.customer.toLowerCase().includes(searchQuery.toLowerCase()) || p.desc.toLowerCase().includes(searchQuery.toLowerCase()) || p.orderNo.toLowerCase().includes(searchQuery.toLowerCase());
@@ -257,9 +262,9 @@
 
             const customerGroupData = useMemo(() => {
                 const groups = {};
-                projects.forEach(p => { groups[p.customer] = (groups[p.customer] || 0) + Number(p.value || 0); });
+                filteredProjects.forEach(p => { groups[p.customer] = (groups[p.customer] || 0) + Number(p.value || 0); });
                 return Object.entries(groups).map(([name, val]) => ({ name, val })).sort((a, b) => b.val - a.val).slice(0, 5);
-            }, [projects]);
+            }, [filteredProjects]);
 
             const maxCustomerVal = useMemo(() => Math.max(...customerGroupData.map(c => c.val), 1), [customerGroupData]);
 
@@ -509,7 +514,7 @@
                             </div>
 
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Execution Status</label>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-solar-textMuted">Execution Status</label>
                                 <div className="grid grid-cols-1 gap-1">
                                     {['All', 'Completed', 'Last payment against PN', 'Not handover'].map(status => (
                                         <button
@@ -579,8 +584,6 @@
                         </aside>
 
                         <main className="flex-1 p-4 sm:p-5 flex flex-col gap-5 overflow-y-visible lg:overflow-y-auto min-h-0">
-                            
-                            {/* DYNAMIC CARD ROW CONTAINER */}
                             <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 shrink-0">
                                 <div className="bg-solar-cardBg p-5 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(15,23,42,0.03)] flex flex-col justify-between">
                                     <div className="flex justify-between items-center w-full">
@@ -1022,7 +1025,7 @@
                     )}
 
                     {notification && (
-                        <div className={`fixed bottom-5 right-5 z-[200] px-4 py-2.5 rounded-lg text-xs font-bold text-white shadow-xl flex items-center gap-2 ${
+                        <div className={`fixed bottom-5 right-5 z-[200] px-4 py-2.5 rounded-lg text-xs font-bold text-white shadow-xl flex items-center gap-2 animate-fade-in ${
                             notification.type === 'error' ? 'bg-red-600' : notification.type === 'warning' ? 'bg-amber-600' : 'bg-emerald-600'
                         }`}>
                             <i className={`fa-solid ${notification.type === 'error' ? 'fa-circle-exclamation' : notification.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-check'}`}></i>
