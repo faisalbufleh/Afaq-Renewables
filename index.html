@@ -38,7 +38,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Framework CDNs -->
+    <!-- Stable Production Core Framework CDNs (Pinned Babel version prevents script compilation crashes) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone@7.15.0/babel.min.js" crossorigin></script>
@@ -227,17 +227,23 @@
                 }
             };
 
-            // 1. FILTERED PROJECT LIST GENERATED FIRST (Triggers UI updates dynamically)
+            // 1. STABLE DEFENSIVE WORKSPACE FILTERING ENGINE
             const filteredProjects = useMemo(() => {
                 return projects.filter(p => {
-                    const matchesSearch = p.customer.toLowerCase().includes(searchQuery.toLowerCase()) || p.desc.toLowerCase().includes(searchQuery.toLowerCase()) || p.orderNo.toLowerCase().includes(searchQuery.toLowerCase());
+                    // Safe type conversion prevents database null/numeric value string compilation crashes
+                    const customerStr = String(p.customer || '').toLowerCase();
+                    const descStr = String(p.desc || '').toLowerCase();
+                    const orderNoStr = String(p.orderNo || '').toLowerCase();
+                    const searchTarget = searchQuery.toLowerCase();
+
+                    const matchesSearch = customerStr.includes(searchTarget) || descStr.includes(searchTarget) || orderNoStr.includes(searchTarget);
                     const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
-                    const matchesYear = yearFilter === 'All' || p.year.toString() === yearFilter;
+                    const matchesYear = yearFilter === 'All' || String(p.year) === yearFilter;
                     return matchesSearch && matchesStatus && matchesYear;
                 });
             }, [projects, searchQuery, statusFilter, yearFilter]);
 
-            // 2. EXECUTIVE KPI METRICS CALCULATED ON THE DYNAMIC FILTERED LIST
+            // 2. DYNAMIC METRICS RE-CALCULATION CHUB (Calculates explicitly over the filtered scope)
             const metrics = useMemo(() => {
                 let totalPipeline = 0; let totalBilled = 0; let totalCollected = 0;
                 let totalProfit = 0; let totalAfaq = 0; let totalJubilee = 0;
@@ -262,7 +268,10 @@
 
             const customerGroupData = useMemo(() => {
                 const groups = {};
-                filteredProjects.forEach(p => { groups[p.customer] = (groups[p.customer] || 0) + Number(p.value || 0); });
+                filteredProjects.forEach(p => {
+                    const name = p.customer || 'Unknown Client';
+                    groups[name] = (groups[name] || 0) + Number(p.value || 0);
+                });
                 return Object.entries(groups).map(([name, val]) => ({ name, val })).sort((a, b) => b.val - a.val).slice(0, 5);
             }, [filteredProjects]);
 
@@ -358,7 +367,7 @@
                 if (!isAdmin) return;
                 setProjects(prev => prev.map(p => p.id === id ? { ...p, status: newStatus, lastUpdated: Date.now() } : p));
                 setActiveStatusChangerId(null);
-                showToast(`Project execution status updated.`);
+                showToast("Project execution status updated.");
                 
                 if (isCloudConfigured) {
                     const { error } = await supabase.from('ledger').update({ status: newStatus, lastUpdated: Date.now() }).eq('id', id);
@@ -393,15 +402,15 @@
 
             const handleExportCSV = () => {
                 let csvContent = "data:text/csv;charset=utf-8,Order No,Year,Customer Name,Scope of Supply,Order Value (SAR),Billed Value (SAR),Cash Collected (SAR),Net Joint Profit (SAR),AFAQ Share (SAR),Jubilee Share (SAR),Project Status\n";
-                projects.forEach(item => {
-                    csvContent += [item.orderNo, item.year, `"${item.customer.replace(/"/g, '""')}"`, `"${item.desc.replace(/"/g, '""')}"`, item.value, item.billed, item.collection, item.profit, item.afaqProfit, item.jubileeProfit, item.status].join(",") + "\n";
+                filteredProjects.forEach(item => {
+                    csvContent += [item.orderNo, item.year, `"${(item.customer || '').replace(/"/g, '""')}"`, `"${(item.desc || '').replace(/"/g, '""')}"`, item.value, item.billed, item.collection, item.profit, item.afaqProfit, item.jubileeProfit, item.status].join(",") + "\n";
                 });
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `AFAQ_Solar_Sales_Master_${new Date().toISOString().split('T')[0]}.csv`);
+                link.setAttribute("download", `AFAQ_Solar_Sales_Filtered_${new Date().toISOString().split('T')[0]}.csv`);
                 document.body.appendChild(link); link.click(); document.body.removeChild(link);
-                showToast("CSV file successfully prepared and downloaded.");
+                showToast("CSV file for the active filtered selection prepared and downloaded.");
             };
 
             const formatCurrency = (val) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
@@ -409,6 +418,7 @@
             return (
                 <div className="flex-1 flex flex-col lg:h-full lg:overflow-hidden bg-solar-bgMain">
                     
+                    {/* Header bar inspired by Tier 1 corporate designs */}
                     <header className="bg-solar-cardBg border-b border-solar-border px-4 sm:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm shrink-0">
                         <div className="flex items-center gap-3 w-full md:w-auto select-none">
                             <div className="bg-[#0081C9] w-[46px] h-[46px] rounded-[13px] flex items-center justify-center text-white shadow-sm shrink-0">
@@ -885,15 +895,6 @@
                                                     </tr>
                                                 );
                                             })}
-                                            {filteredProjects.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="10" className="px-6 py-16 text-center text-solar-textMuted">
-                                                        <i className="fa-solid fa-solar-panel text-3xl text-slate-300 mb-3 block"></i>
-                                                        <p className="text-xs font-bold text-solar-textDark">No active solar project lines matching filters</p>
-                                                        <p className="text-[11px] mt-0.5">Adjust filter parameters or unlock admin console to append new records.</p>
-                                                    </td>
-                                                </tr>
-                                            )}
                                         </tbody>
                                     </table>
                                 </div>
