@@ -80,7 +80,7 @@
     <div id="root" class="min-h-screen lg:h-screen flex flex-col"></div>
 
     <!-- React Application Implementation -->
-    <script type="text/babel" data-id="v2-dynamic-kpis-engine">
+    <script type="text/babel" data-id="dynamic-kpi-engine-v3">
         const { useState, useEffect, useMemo } = React;
 
         // =========================================================================
@@ -242,7 +242,7 @@
                 });
             }, [projects, searchQuery, statusFilter, yearFilter]);
 
-            // 2. RUNTIME CUMULATIVE METRICS COMPUTE LAYER (Tied explicitly to the changing filtered list)
+            // 2. RUNTIME DYNAMIC METRICS COMPUTE LAYER (Bound explicitly to the filteredProjects array)
             const metrics = useMemo(() => {
                 let totalPipeline = 0; let totalBilled = 0; let totalCollected = 0;
                 let totalProfit = 0; let totalAfaq = 0; let totalJubilee = 0;
@@ -262,7 +262,9 @@
                 const billingRatio = totalPipeline > 0 ? (totalBilled / totalPipeline) * 100 : 0;
                 const collectionRatio = totalPipeline > 0 ? (totalCollected / totalPipeline) * 100 : 0;
 
-                return { totalPipeline, totalBilled, totalCollected, totalProfit, totalAfaq, totalJubilee, outstandingReceivables, unbilledAmount, profitMargin, billingRatio, collectionRatio };
+                const result = { totalPipeline, totalBilled, totalCollected, totalProfit, totalAfaq, totalJubilee, outstandingReceivables, unbilledAmount, profitMargin, billingRatio, collectionRatio };
+                console.log("Active KPI Summary Scope Recalculated:", result);
+                return result;
             }, [filteredProjects]);
 
             const customerGroupData = useMemo(() => {
@@ -497,7 +499,7 @@
                     </div>
 
                     <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden min-h-0">
-                        <aside className={`w-full lg:w-80 bg-solar-cardBg p-5 border-b lg:border-b-0 lg:border-r border-solar-border flex flex-col gap-5 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:flex'} lg:overflow-y-auto`}>
+                        <aside className="w-full lg:w-80 bg-solar-cardBg p-5 border-b lg:border-b-0 lg:border-r border-solar-border flex flex-col gap-5 shrink-0 lg:flex lg:overflow-y-auto">
                             <div>
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-solar-textDark mb-1">Interactive Filters</h3>
                                 <p className="text-[11px] text-solar-textMuted">Slice distribution volumes by statuses, timelines, and customer tags.</p>
@@ -553,7 +555,7 @@
                                             onClick={() => setYearFilter(year)}
                                             className={`flex-1 text-center py-1.5 rounded-lg text-xs transition-all border ${
                                                 yearFilter === year 
-                                                    ? 'bg-sky-50 text-solar-primary border-sky-300 font-semibold shadow-sm' 
+                                                    ? 'bg-sky-50 text-solar-primary border border-sky-300 font-semibold shadow-sm' 
                                                     : 'bg-solar-bgMain border-solar-border text-solar-textMuted hover:bg-slate-50'
                                             }`}
                                         >
