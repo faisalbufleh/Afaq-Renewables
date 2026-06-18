@@ -5,18 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFAQ Renewables - Executive Solar Sales Cockpit</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AFAQ Renewables - Executive Solar Sales Cockpit</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -51,6 +39,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Core Application Libraries -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -92,8 +81,8 @@
     <div id="root" class="min-h-screen lg:h-screen flex flex-col"></div>
 
     <!-- React Application Implementation -->
-<script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
         // =========================================================================
         // PLACE YOUR CLOUD DATABASE PARAMETERS HERE FOR REAL-TIME TEAM SYNCING
@@ -105,7 +94,7 @@
         const isCloudConfigured = SUPABASE_URL && !SUPABASE_URL.includes("PLACE_YOUR_");
         const supabase = isCloudConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-        // Baseline data from the AFAQ joint venture sales audited ledger[cite: 2]
+        // Baseline data from the AFAQ joint venture sales audited ledger
         const BASELINE_LEDGER = [
             { id: "1", orderNo: "2011", year: 2025, customer: "Jangho Arabia Construction LCC", desc: "Supplying of Jinko 620 Wp PV Module - 3852 panels", value: 1019778.49, billed: 886763.90, collection: 1019778.49, profit: 23561.45, afaqProfit: 23561.45, jubileeProfit: 0.00, status: "Completed" },
             { id: "2", orderNo: "2017", year: 2025, customer: "Jangho Arabia Construction LCC", desc: "Supplying of GT Series 125 kW - 16 units", value: 220698.80, billed: 191912.00, collection: 220698.80, profit: 11825.00, afaqProfit: 11825.00, jubileeProfit: 0.00, status: "Completed" },
@@ -139,20 +128,20 @@
             const [projects, setProjects] = useState([]);
             const [isTableLoading, setIsTableLoading] = useState(true);
 
-            // Gatekeeper Security States[cite: 2]
+            // Gatekeeper Security States
             const [isAdmin, setIsAdmin] = useState(false);
             const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
             const [enteredPassword, setEnteredPassword] = useState('');
             const [passwordError, setPasswordError] = useState(false);
 
-            // Filtering and UI states[cite: 2]
+            // Filtering and UI states
             const [searchQuery, setSearchQuery] = useState('');
             const [statusFilter, setStatusFilter] = useState('All');
             const [yearFilter, setYearFilter] = useState('All');
             const [notification, setNotification] = useState(null);
             const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-            // Modal States[cite: 2]
+            // Modal States
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [modalType, setModalType] = useState('ADD'); 
             const [currentProject, setCurrentProject] = useState({
@@ -395,27 +384,27 @@
             return (
                 <div className="flex-1 flex flex-col lg:h-full lg:overflow-hidden bg-solar-bgMain">
                     
-                    {/* Header bar inspired by image_daacd2.png and Tier 1 corporate designs[cite: 2] */}
+                    {/* Header bar inspired by image_daacd2.png and Tier 1 corporate designs */}
                     <header className="bg-solar-cardBg border-b border-solar-border px-4 sm:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm shrink-0">
                         <div className="flex items-center gap-3 w-full md:w-auto select-none">
-                            {/* Logo Icon Core Vector Rebuilt from image_da4e40.png[cite: 2] */}
+                            {/* Logo Icon Core Vector Rebuilt from image_da4e40.png */}
                             <div className="bg-[#0081C9] w-[46px] h-[46px] rounded-[13px] flex items-center justify-center text-white shadow-sm shrink-0">
                                 <i className="fa-solid fa-solar-panel text-2xl"></i>
                             </div>
-                            {/* Corporate Typography Stack mirroring image_da4e40.png[cite: 2] */}
+                            {/* Corporate Typography Stack mirroring image_da4e40.png */}
                             <div className="flex flex-col">
                                 <div className="flex items-baseline flex-wrap gap-y-1">
                                     <span className="text-2xl font-[900] text-[#0A1128] tracking-tight antialiased">AFAQ</span>
                                     <span className="text-2xl font-normal text-[#475569] tracking-tight ml-1.5 antialiased">Renewables</span>
                                     
-                                    {/* Permission Status Badge[cite: 2] */}
+                                    {/* Permission Status Badge */}
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2.5 self-center transition-colors ${
                                         isAdmin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'
                                     }`}>
                                         {isAdmin ? 'Admin Console Active' : 'Read-Only View'}
                                     </span>
 
-                                    {/* Database Connectivity Sync Badge[cite: 2] */}
+                                    {/* Database Connectivity Sync Badge */}
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2 self-center transition-colors ${
                                         isCloudConfigured ? 'bg-sky-50 text-solar-primary border-sky-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                                     }`}>
@@ -427,7 +416,7 @@
                             </div>
                         </div>
 
-                        {/* Interactive Action Control Chamber with Security Gatekeeping[cite: 2] */}
+                        {/* Interactive Action Control Chamber with Security Gatekeeping */}
                         <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 sm:gap-3 w-full md:w-auto">
                             <button 
                                 onClick={() => isAdmin ? (setIsAdmin(false), showToast("Platform locked. Returned safely to View Mode.", "warning")) : setIsAuthModalOpen(true)}
@@ -439,7 +428,7 @@
                                 {isAdmin ? 'Lock Platform' : 'Unlock Platform'}
                             </button>
 
-                            {/* Administrative Controlled Feature Buttons[cite: 2] */}
+                            {/* Administrative Controlled Feature Buttons */}
                             {isAdmin && (
                                 <button 
                                     onClick={handleResetToBaseline}
@@ -467,7 +456,7 @@
                         </div>
                     </header>
 
-                    {/* Mobile Dynamic Filters Panel Trigger[cite: 2] */}
+                    {/* Mobile Dynamic Filters Panel Trigger */}
                     <div className="lg:hidden bg-solar-cardBg border-b border-solar-border px-4 py-2.5 flex justify-between items-center shrink-0">
                         <button 
                             onClick={() => setShowMobileFilters(!showMobileFilters)} 
@@ -481,17 +470,17 @@
                         </button>
                     </div>
 
-                    {/* Workspace Core Layout[cite: 2] */}
+                    {/* Workspace Core Layout */}
                     <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden min-h-0">
                         
-                        {/* Sidebar controller[cite: 2] */}
+                        {/* Sidebar controller */}
                         <aside className={`w-full lg:w-80 bg-solar-cardBg p-5 border-b lg:border-b-0 lg:border-r border-solar-border flex flex-col gap-5 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:flex'} lg:overflow-y-auto`}>
                             <div>
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-solar-textDark mb-1">Interactive Filters</h3>
                                 <p className="text-[11px] text-solar-textMuted">Slice distribution volumes by statuses, timelines, and customer tags.</p>
                             </div>
 
-                            {/* Client Search[cite: 2] */}
+                            {/* Client Search */}
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Search Workspace</label>
                                 <div className="relative">
@@ -511,7 +500,7 @@
                                 </div>
                             </div>
 
-                            {/* Status filter[cite: 2] */}
+                            {/* Status filter */}
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Execution Status</label>
                                 <div className="grid grid-cols-1 gap-1">
@@ -534,7 +523,7 @@
                                 </div>
                             </div>
 
-                            {/* Year filter[cite: 2] */}
+                            {/* Year filter */}
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Operational Year</label>
                                 <div className="flex gap-2">
@@ -554,7 +543,7 @@
                                 </div>
                             </div>
 
-                            {/* Partnership KPI Summary Block[cite: 2] */}
+                            {/* Partnership KPI Summary Block */}
                             <div className="mt-2 lg:mt-auto pt-4 border-t border-solar-border bg-solar-bgMain/60 p-3.5 rounded-xl border border-dashed border-slate-200">
                                 <h4 className="text-[10px] font-bold uppercase text-solar-primary mb-2 tracking-wider flex items-center gap-1">
                                     <i className="fa-solid fa-handshake"></i> Partnership Dynamics
@@ -584,10 +573,10 @@
                             </div>
                         </aside>
 
-                        {/* Main Cockpit Space[cite: 2] */}
+                        {/* Main Cockpit Space */}
                         <main className="flex-1 p-4 sm:p-5 flex flex-col gap-5 overflow-y-visible lg:overflow-y-auto min-h-0">
                             
-                            {/* Premium Refactored Executive Summary Metrics Row[cite: 2] */}
+                            {/* Premium Refactored Executive Summary Metrics Row */}
                             <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 shrink-0">
                                 <div className="bg-solar-cardBg p-5 rounded-2xl border border-slate-200/90 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-[0_8px_20px_rgba(15,23,42,0.06)] transition-all duration-300 flex flex-col justify-between">
                                     <div className="flex justify-between items-center w-full">
@@ -684,7 +673,7 @@
                                 </div>
                             </section>
 
-                            {/* Working Capital Stress Test Warning banner[cite: 2] */}
+                            {/* Working Capital Stress Test Warning banner */}
                             {metrics.outstandingReceivables > 0 && (
                                 <section className="bg-amber-50/70 border border-amber-200 p-3.5 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
                                     <div className="flex items-start sm:items-center gap-3">
@@ -702,7 +691,7 @@
                                 </section>
                             )}
 
-                            {/* Dashboard Visualizations[cite: 2] */}
+                            {/* Dashboard Visualizations */}
                             <section className="grid grid-cols-1 xl:grid-cols-5 gap-5 shrink-0">
                                 <div className="bg-solar-cardBg p-5 rounded-xl border border-solar-border xl:col-span-3 flex flex-col justify-between shadow-sm">
                                     <div className="mb-4">
@@ -797,7 +786,7 @@
                                 </div>
                             </section>
 
-                            {/* Audited JV Sales Master Table[cite: 2] */}
+                            {/* Audited JV Sales Master Table */}
                             <section className="bg-solar-cardBg rounded-xl border border-solar-border shadow-sm flex-1 flex flex-col min-h-[350px] overflow-hidden">
                                 <div className="px-4 sm:px-6 py-4 border-b border-solar-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
                                     <div>
@@ -909,7 +898,7 @@
                         </main>
                     </div>
 
-                    {/* Cryptographic Administrative Gatekeeper Authentication Prompt[cite: 2] */}
+                    {/* Cryptographic Administrative Gatekeeper Authentication Prompt */}
                     {isAuthModalOpen && (
                         <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                             <div className="bg-white border border-solar-border rounded-xl w-full max-w-sm shadow-2xl p-6">
@@ -939,7 +928,7 @@
                         </div>
                     )}
 
-                    {/* Dynamic Add / Edit Project Form Modal Dialog[cite: 2] */}
+                    {/* Dynamic Add / Edit Project Form Modal Dialog */}
                     {isModalOpen && isAdmin && (
                         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
                             <div className="bg-white border border-solar-border rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-fade-in my-auto overflow-hidden">
@@ -1042,4 +1031,3 @@
     </script>
 </body>
 </html>
-
