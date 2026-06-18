@@ -38,7 +38,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- React, Fixed Babel Runtime, and Live Supabase Cloud SDKs -->
+    <!-- Stable Production Core Framework CDNs (Pinned Babel version prevents script compilation crashes) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone@7.15.0/babel.min.js" crossorigin></script>
@@ -156,32 +156,25 @@
                 setTimeout(() => setNotification(null), 4000);
             };
 
-            // Database Lifecycle Syncer Execution Engine
+            // Database Lifecycle Engine - Local-first load strategy
             useEffect(() => {
-                if (!isCloudConfigured) {
-                    const stored = localStorage.getItem('afaq_renewables_sales');
-                    setProjects(stored ? JSON.parse(stored) : BASELINE_LEDGER);
-                    setIsTableLoading(false);
-                    return;
-                }
+                // Instantly deploy local cache so UI is populated and stable immediately
+                const stored = localStorage.getItem('afaq_renewables_sales');
+                setProjects(stored ? JSON.parse(stored) : BASELINE_LEDGER);
+                setIsTableLoading(false);
+
+                if (!isCloudConfigured) return;
 
                 async function initializeCloudSchema() {
                     try {
                         const { data, error } = await supabase.from('ledger').select('*');
                         if (error) throw error;
                         
-                        if (!data || data.length === 0) {
-                            await supabase.from('ledger').insert(BASELINE_LEDGER);
-                            setProjects(BASELINE_LEDGER);
-                        } else {
+                        if (data && data.length > 0) {
                             setProjects(data);
                         }
                     } catch (err) {
-                        showToast("Cloud Connection Error. Swapping to backup standalone ledger fallback mode.", "error");
-                        const stored = localStorage.getItem('afaq_renewables_sales');
-                        setProjects(stored ? JSON.parse(stored) : BASELINE_LEDGER);
-                    } finally {
-                        setIsTableLoading(false);
+                        console.error("Cloud connection issue:", err);
                     }
                 }
 
@@ -205,9 +198,9 @@
                 };
             }, []);
 
-            // Backup synchronization save loop for sandbox instances
+            // Backup resilience loop: Safely backup all state changes locally regardless of connection boundaries
             useEffect(() => {
-                if (!isCloudConfigured && projects.length > 0) {
+                if (projects.length > 0) {
                     localStorage.setItem('afaq_renewables_sales', JSON.stringify(projects));
                 }
             }, [projects]);
@@ -265,6 +258,7 @@
 
             const maxCustomerVal = useMemo(() => Math.max(...customerGroupData.map(c => c.val), 1), [customerGroupData]);
 
+            // Resilient Dual-Sync Form Submission Engine
             const handleFormSubmit = async (e) => {
                 e.preventDefault();
                 if (!isAdmin) return;
@@ -292,19 +286,36 @@
                         id,
                         orderNo: formatted.orderNo || `N/A-${id.slice(-4)}`
                     };
+                    
+                    // Step 1: Force UI and Local Storage update immediately
+                    setProjects(prev => [newProject, ...prev]);
+                    showToast("Appended to local dashboard storage layout.");
+                    
+                    // Step 2: Attempt Background Cloud Synchronization
                     if (isCloudConfigured) {
-                        await supabase.from('ledger').insert([newProject]);
-                    } else {
-                        setProjects(prev => [newProject, ...prev]);
+                        const { error } = await supabase.from('ledger').insert([newProject]);
+                        if (error) {
+                            console.error("RLS Policy Block:", error);
+                            showToast("Cloud synchronization failed due to table permissions. Kept safe locally.", "warning");
+                        } else {
+                            showToast("Database cloud pipeline row deployed successfully.");
+                        }
                     }
-                    showToast("New client contract successfully appended to pipeline.");
                 } else {
+                    // Step 1: Force UI and Local Storage update immediately
+                    setProjects(prev => prev.map(p => p.id === currentProject.id ? formatted : p));
+                    showToast("Updated local dashboard transaction profile.");
+                    
+                    // Step 2: Attempt Background Cloud Synchronization
                     if (isCloudConfigured) {
-                        await supabase.from('ledger').update(formatted).eq('id', formatted.id);
-                    } else {
-                        setProjects(prev => prev.map(p => p.id === currentProject.id ? formatted : p));
+                        const { error } = await supabase.from('ledger').update(formatted).eq('id', formatted.id);
+                        if (error) {
+                            console.error("RLS Policy Block:", error);
+                            showToast("Cloud modification failed. Modifications saved locally.", "warning");
+                        } else {
+                            showToast("Database cloud profile matrix updated successfully.");
+                        }
                     }
-                    showToast("Client order records successfully updated.");
                 }
 
                 setIsModalOpen(false);
@@ -327,24 +338,26 @@
             const handleDelete = async (id) => {
                 if (!isAdmin) return;
                 if (window.confirm("Are you sure you want to remove this client from the executive sales record? This action will immediately recalculate all cumulative joint metrics.")) {
+                    setProjects(prev => prev.filter(p => p.id !== id));
+                    showToast("Contract removed from local master memory context.", "warning");
+                    
                     if (isCloudConfigured) {
-                        await supabase.from('ledger').delete().eq('id', id);
-                    } else {
-                        setProjects(prev => prev.filter(p => p.id !== id));
+                        const { error } = await supabase.from('ledger').delete().eq('id', id);
+                        if (error) showToast("Database deletion restricted by cloud rules.", "warning");
                     }
-                    showToast("Contract removed from master database", "warning");
                 }
             };
 
             const handleStatusQuickChange = async (id, newStatus) => {
                 if (!isAdmin) return;
-                if (isCloudConfigured) {
-                    await supabase.from('ledger').update({ status: newStatus }).eq('id', id);
-                } else {
-                    setProjects(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-                }
+                setProjects(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
                 setActiveStatusChangerId(null);
-                showToast(`Project status updated to: ${newStatus}`);
+                showToast(`Project profile metrics updated locally.`);
+                
+                if (isCloudConfigured) {
+                    const { error } = await supabase.from('ledger').update({ status: newStatus }).eq('id', id);
+                    if (error) showToast("Database status field upload restricted.", "warning");
+                }
             };
 
             const runAutoSplit = (type) => {
@@ -360,17 +373,15 @@
             const handleResetToBaseline = async () => {
                 if (!isAdmin) return;
                 if (window.confirm("Warning: This will overwrite all custom inputs, modifications, and newly added clients back to the original audited 2025/2026 baseline records. Proceed?")) {
+                    setProjects(BASELINE_LEDGER);
+                    showToast("Reverted system memory arrays to original audited ledger baseline layout.", "warning");
+                    
                     if (isCloudConfigured) {
                         setIsTableLoading(true);
                         await supabase.from('ledger').delete().neq('id', '0');
                         await supabase.from('ledger').insert(BASELINE_LEDGER);
-                        const { data } = await supabase.from('ledger').select('*');
-                        setProjects(data || BASELINE_LEDGER);
                         setIsTableLoading(false);
-                    } else {
-                        setProjects(BASELINE_LEDGER);
                     }
-                    showToast("Reverted system to original audited ledger.", "warning");
                 }
             };
 
@@ -392,25 +403,28 @@
             return (
                 <div className="flex-1 flex flex-col lg:h-full lg:overflow-hidden bg-solar-bgMain">
                     
+                    {/* Header bar inspired by Tier 1 corporate designs */}
                     <header className="bg-solar-cardBg border-b border-solar-border px-4 sm:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm shrink-0">
                         <div className="flex items-center gap-3 w-full md:w-auto select-none">
                             <div className="bg-[#0081C9] w-[46px] h-[46px] rounded-[13px] flex items-center justify-center text-white shadow-sm shrink-0">
                                 <i className="fa-solid fa-solar-panel text-2xl"></i>
                             </div>
                             <div className="flex flex-col">
-                                <div className="flex items-baseline">
+                                <div className="flex items-baseline flex-wrap gap-y-1">
                                     <span className="text-2xl font-[900] text-[#0A1128] tracking-tight antialiased">AFAQ</span>
                                     <span className="text-2xl font-normal text-[#475569] tracking-tight ml-1.5 antialiased">Renewables</span>
-                                    <span className={`hidden sm:inline-block text-[10px] px-2.5 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-3 self-center transition-colors ${
+                                    
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2.5 self-center transition-colors ${
                                         isAdmin ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'
                                     }`}>
                                         {isAdmin ? 'Admin Console Active' : 'Read-Only View'}
                                     </span>
+
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ml-2 self-center transition-colors ${
                                         isCloudConfigured ? 'bg-sky-50 text-solar-primary border-sky-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                                     }`}>
                                         <i className={`fa-solid ${isCloudConfigured ? 'fa-cloud' : 'fa-laptop'} mr-1`}></i>
-                                        {isCloudConfigured ? 'Cloud Live' : 'Local Standalone'}
+                                        {isCloudConfigured ? 'Cloud Live Link' : 'Local Standalone'}
                                     </span>
                                 </div>
                                 <p className="text-xs text-solar-textMuted font-medium tracking-wide">Jubilee Bros Joint Sales & Procurement Pipeline</p>
@@ -419,18 +433,9 @@
 
                         <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 sm:gap-3 w-full md:w-auto">
                             <button 
-                                onClick={() => {
-                                    if (isAdmin) {
-                                        setIsAdmin(false);
-                                        showToast("Platform locked. Returned safely to View Mode.", "warning");
-                                    } else {
-                                        setIsAuthModalOpen(true);
-                                    }
-                                }}
+                                onClick={() => isAdmin ? (setIsAdmin(false), showToast("Platform locked. Returned safely to View Mode.", "warning")) : setIsAuthModalOpen(true)}
                                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 flex-1 sm:flex-initial justify-center shadow-sm ${
-                                    isAdmin 
-                                        ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' 
-                                        : 'bg-sky-50 border-sky-200 text-solar-primary hover:bg-sky-100'
+                                    isAdmin ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' : 'bg-sky-50 border-sky-200 text-solar-primary hover:bg-sky-100'
                                 }`}
                             >
                                 <i className={`fa-solid ${isAdmin ? 'fa-lock-open' : 'fa-lock'}`}></i>
@@ -504,7 +509,7 @@
                             </div>
 
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Execution Status</label>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-solar-textMuted">Execution Status</label>
                                 <div className="grid grid-cols-1 gap-1">
                                     {['All', 'Completed', 'Last payment against PN', 'Not handover'].map(status => (
                                         <button
@@ -526,7 +531,7 @@
                             </div>
 
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-bold uppercase tracking-wide text-solar-textMuted">Operational Year</label>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-solar-textMuted">Operational Year</label>
                                 <div className="flex gap-2">
                                     {['All', '2025', '2026'].map(year => (
                                         <button
@@ -793,97 +798,99 @@
                                 </div>
 
                                 <div className="flex-1 overflow-x-auto overflow-y-visible lg:overflow-y-auto w-full">
-                                    {isTableLoading ? (
-                                        <div className="flex flex-col items-center justify-center py-24 gap-3 text-solar-textMuted text-xs font-semibold">
-                                            <i className="fa-solid fa-circle-notch fa-spin text-2xl text-solar-primary"></i>
-                                            <span>Synchronizing data rows with live cloud storage database...</span>
-                                        </div>
-                                    ) : (
-                                        <table className="w-full text-left border-collapse min-w-[1100px]">
-                                            <thead>
-                                                <tr className="bg-slate-50 border-b border-solar-border text-[10px] font-bold text-solar-textMuted uppercase tracking-wider sticky top-0 z-10">
-                                                    <th className="px-5 py-3 text-center w-20">Order No</th>
-                                                    <th className="px-4 py-3 w-16">Year</th>
-                                                    <th className="px-5 py-3 w-64">Client & Customer Entity</th>
-                                                    <th className="px-5 py-3 w-80">Supply & Technical Scope</th>
-                                                    <th className="px-5 py-3 text-right">Order Value</th>
-                                                    <th className="px-5 py-3 text-right w-36">Cash Collected</th>
-                                                    <th className="px-5 py-3 text-right">Net Profit</th>
-                                                    <th className="px-5 py-3 text-center w-36 whitespace-nowrap">Split Share (AFAQ / JB)</th>
-                                                    <th className="px-5 py-3 text-center w-48">Execution Status</th>
-                                                    <th className="px-5 py-3 text-right w-24">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-100 text-xs text-solar-textMuted">
-                                                {filteredProjects.map((project) => {
-                                                    const afaqPct = project.profit > 0 ? Math.round((project.afaqProfit / project.profit) * 100) : 0;
-                                                    const jubileePct = project.profit > 0 ? Math.round((project.jubileeProfit / project.profit) * 100) : 0;
-                                                    const remainingToCollect = Number(project.value || 0) - Number(project.collection || 0);
+                                    <table className="w-full text-left border-collapse min-w-[1100px]">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-solar-border text-[10px] font-bold text-solar-textMuted uppercase tracking-wider sticky top-0 z-10">
+                                                <th className="px-5 py-3 text-center w-20">Order No</th>
+                                                <th className="px-4 py-3 w-16">Year</th>
+                                                <th className="px-5 py-3 w-64">Client & Customer Entity</th>
+                                                <th className="px-5 py-3 w-80">Supply & Technical Scope</th>
+                                                <th className="px-5 py-3 text-right">Order Value</th>
+                                                <th className="px-5 py-3 text-right w-36">Cash Collected</th>
+                                                <th className="px-5 py-3 text-right">Net Profit</th>
+                                                <th className="px-5 py-3 text-center w-36 whitespace-nowrap">Split Share (AFAQ / JB)</th>
+                                                <th className="px-5 py-3 text-center w-48">Execution Status</th>
+                                                <th className="px-5 py-3 text-right w-24">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 text-xs text-solar-textMuted">
+                                            {filteredProjects.map((project) => {
+                                                const afaqPct = project.profit > 0 ? Math.round((project.afaqProfit / project.profit) * 100) : 0;
+                                                const jubileePct = project.profit > 0 ? Math.round((project.jubileeProfit / project.profit) * 100) : 0;
+                                                const remainingToCollect = Number(project.value || 0) - Number(project.collection || 0);
 
-                                                    let statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
-                                                    if (project.status === 'Not handover') statusColor = 'bg-sky-50 text-solar-primary border-sky-200 hover:bg-sky-100';
-                                                    else if (project.status === 'Last payment against PN') statusColor = 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100';
+                                                let statusColor = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+                                                if (project.status === 'Not handover') statusColor = 'bg-sky-50 text-solar-primary border-sky-200 hover:bg-sky-100';
+                                                else if (project.status === 'Last payment against PN') statusColor = 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100';
 
-                                                    return (
-                                                        <tr key={project.id} className="hover:bg-slate-50/70 transition-colors group">
-                                                            <td className="px-5 py-3.5 text-center font-mono font-bold text-solar-textDark">{project.orderNo}</td>
-                                                            <td className="px-4 py-3.5 font-mono text-solar-textMuted">{project.year}</td>
-                                                            <td className="px-5 py-3.5 font-bold text-solar-textDark truncate max-w-xs">{project.customer}</td>
-                                                            <td className="px-5 py-3.5 text-solar-textMuted truncate max-w-sm" title={project.desc}>{project.desc}</td>
-                                                            <td className="px-5 py-3.5 text-right font-mono font-bold text-solar-textDark">{formatCurrency(project.value)}</td>
-                                                            <td className="px-5 py-3.5 text-right font-mono">
-                                                                <div className="font-bold text-slate-700">{formatCurrency(project.collection)}</div>
-                                                                {remainingToCollect > 0.01 && (
-                                                                    <div className="text-[10px] font-sans font-semibold text-solar-accentAmber mt-0.5 whitespace-nowrap">To Collect: {formatCurrency(remainingToCollect)}</div>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-5 py-3.5 text-right font-mono font-bold text-solar-primary">{formatCurrency(project.profit)}</td>
-                                                            <td className="px-5 py-3.5 text-center whitespace-nowrap">
-                                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-md text-[11px] font-bold font-mono">
-                                                                    <span className="text-solar-primary">{afaqPct}%</span><span className="text-slate-300 font-normal">/</span><span className="text-solar-accentGreen">{jubileePct}%</span>
+                                                return (
+                                                    <tr key={project.id} className="hover:bg-slate-50/70 transition-colors group">
+                                                        <td className="px-5 py-3.5 text-center font-mono font-bold text-solar-textDark">{project.orderNo}</td>
+                                                        <td className="px-4 py-3.5 font-mono text-solar-textMuted">{project.year}</td>
+                                                        <td className="px-5 py-3.5 font-bold text-solar-textDark truncate max-w-xs">{project.customer}</td>
+                                                        <td className="px-5 py-3.5 text-solar-textMuted truncate max-w-sm" title={project.desc}>{project.desc}</td>
+                                                        <td className="px-5 py-3.5 text-right font-mono font-bold text-solar-textDark">{formatCurrency(project.value)}</td>
+                                                        <td className="px-5 py-3.5 text-right font-mono">
+                                                            <div className="font-bold text-slate-700">{formatCurrency(project.collection)}</div>
+                                                            {remainingToCollect > 0.01 && (
+                                                                <div className="text-[10px] font-sans font-semibold text-solar-accentAmber mt-0.5 whitespace-nowrap">To Collect: {formatCurrency(remainingToCollect)}</div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-right font-mono font-bold text-solar-primary">{formatCurrency(project.profit)}</td>
+                                                        <td className="px-5 py-3.5 text-center whitespace-nowrap">
+                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-md text-[11px] font-bold font-mono">
+                                                                <span className="text-solar-primary">{afaqPct}%</span><span className="text-slate-300 font-normal">/</span><span className="text-solar-accentGreen">{jubileePct}%</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-center relative">
+                                                            {isAdmin ? (
+                                                                <button 
+                                                                    onClick={(e) => { e.stopPropagation(); setActiveStatusChangerId(activeStatusChangerId === project.id ? null : project.id); }}
+                                                                    className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all shadow-sm flex items-center justify-center gap-1.5 mx-auto ${statusColor}`}
+                                                                >
+                                                                    {project.status}<i className="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
+                                                                </button>
+                                                            ) : (
+                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold border flex items-center justify-center w-max mx-auto select-none ${statusColor.split('hover:')[0]}`}>{project.status}</span>
+                                                            )}
+
+                                                            {isAdmin && activeStatusChangerId === project.id && (
+                                                                <div className="absolute left-1/2 transform -translate-x-1/2 mt-1 w-48 bg-white border border-solar-border rounded-lg shadow-xl z-20 overflow-hidden text-left animate-fade-in">
+                                                                    {['Completed', 'Not handover', 'Last payment against PN'].map(statusOption => (
+                                                                        <button
+                                                                            key={statusOption} onClick={() => handleStatusQuickChange(project.id, statusOption)}
+                                                                            className={`w-full text-left px-4 py-2.5 text-[11px] hover:bg-slate-50 transition-colors flex items-center gap-2 ${project.status === statusOption ? 'text-solar-primary font-bold bg-sky-50/50' : 'text-solar-textDark'}`}
+                                                                        >
+                                                                            <span className={`w-1.5 h-1.5 rounded-full ${statusOption === 'Completed' ? 'bg-emerald-500' : statusOption === 'Not handover' ? 'bg-sky-500' : 'bg-purple-500'}`}></span>{statusOption}
+                                                                        </button>
+                                                                    ))}
                                                                 </div>
-                                                            </td>
-                                                            <td className="px-5 py-3.5 text-center relative">
-                                                                {isAdmin ? (
-                                                                    <button 
-                                                                        onClick={(e) => { e.stopPropagation(); setActiveStatusChangerId(activeStatusChangerId === project.id ? null : project.id); }}
-                                                                        className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all shadow-sm flex items-center justify-center gap-1.5 mx-auto ${statusColor}`}
-                                                                    >
-                                                                        {project.status}<i className="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
-                                                                    </button>
-                                                                ) : (
-                                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border flex items-center justify-center w-max mx-auto select-none ${statusColor.split('hover:')[0]}`}>{project.status}</span>
-                                                                )}
-
-                                                                {isAdmin && activeStatusChangerId === project.id && (
-                                                                    <div className="absolute left-1/2 transform -translate-x-1/2 mt-1 w-48 bg-white border border-solar-border rounded-lg shadow-xl z-20 overflow-hidden text-left animate-fade-in">
-                                                                        {['Completed', 'Not handover', 'Last payment against PN'].map(statusOption => (
-                                                                            <button
-                                                                                key={statusOption} onClick={() => handleStatusQuickChange(project.id, statusOption)}
-                                                                                className={`w-full text-left px-4 py-2.5 text-[11px] hover:bg-slate-50 transition-colors flex items-center gap-2 ${project.status === statusOption ? 'text-solar-primary font-bold bg-sky-50/50' : 'text-solar-textDark'}`}
-                                                                            >
-                                                                                <span className={`w-1.5 h-1.5 rounded-full ${statusOption === 'Completed' ? 'bg-emerald-500' : statusOption === 'Not handover' ? 'bg-sky-500' : 'bg-purple-500'}`}></span>{statusOption}
-                                                                            </button>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-5 py-3.5 text-right">
-                                                                {isAdmin ? (
-                                                                    <div className="flex justify-end gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                        <button onClick={() => openEditModal(project)} className="p-1.5 bg-slate-100 hover:bg-sky-50 hover:text-solar-primary rounded text-solar-textMuted transition-colors border border-slate-200"><i className="fa-solid fa-pen text-[10px]"></i></button>
-                                                                        <button onClick={() => handleDelete(project.id)} className="p-1.5 bg-red-50 hover:bg-red-500 hover:text-white rounded text-red-600 transition-colors border border-red-100"><i className="fa-solid fa-trash-can text-[10px]"></i></button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="flex justify-end text-slate-300 text-xs px-2 select-none"><i className="fa-solid fa-lock opacity-35"></i></div>
-                                                                )}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    )}
+                                                            )}
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-right">
+                                                            {isAdmin ? (
+                                                                <div className="flex justify-end gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button onClick={() => openEditModal(project)} className="p-1.5 bg-slate-100 hover:bg-sky-50 hover:text-solar-primary rounded text-solar-textMuted transition-colors border border-slate-200"><i className="fa-solid fa-pen text-[10px]"></i></button>
+                                                                    <button onClick={() => handleDelete(project.id)} className="p-1.5 bg-red-50 hover:bg-red-500 hover:text-white rounded text-red-600 transition-colors border border-red-100"><i className="fa-solid fa-trash-can text-[10px]"></i></button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex justify-end text-slate-300 text-xs px-2 select-none"><i className="fa-solid fa-lock opacity-35"></i></div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {filteredProjects.length === 0 && (
+                                                <tr>
+                                                    <td colSpan="10" className="px-6 py-16 text-center text-solar-textMuted">
+                                                        <i className="fa-solid fa-solar-panel text-3xl text-slate-300 mb-3 block"></i>
+                                                        <p className="text-xs font-bold text-solar-textDark">No active solar project lines matching filters</p>
+                                                        <p className="text-[11px] mt-0.5">Adjust filter parameters or unlock admin console to append new records.</p>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </section>
                         </main>
@@ -1013,7 +1020,7 @@
                     )}
 
                     {notification && (
-                        <div className={`fixed bottom-5 right-5 z-[200] px-4 py-2.5 rounded-lg text-xs font-bold text-white shadow-xl flex items-center gap-2 animate-fade-in ${
+                        <div className={`fixed bottom-5 right-5 z-[200] px-4 py-2.5 rounded-lg text-xs font-bold text-white shadow-xl flex items-center gap-2 ${
                             notification.type === 'error' ? 'bg-red-600' : notification.type === 'warning' ? 'bg-amber-600' : 'bg-emerald-600'
                         }`}>
                             <i className={`fa-solid ${notification.type === 'error' ? 'fa-circle-exclamation' : notification.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-check'}`}></i>
